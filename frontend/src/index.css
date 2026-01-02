@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: #ffffff;
+}
+
+/* ================================
+   GLOBAL RESPONSIVE FIX (MOBILE)
+   Copy/Paste - No page edits needed
+================================ */
+
+/* 1) Prevent horizontal scroll on mobile */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* 2) Images never overflow + always clean */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 3) Fix long text overflow (cards/messages) */
+* {
+  word-break: break-word;
+}
+
+/* 4) Make all containers adapt better on small screens */
+@media (max-width: 640px) {
+  .max-w-7xl, .max-w-6xl, .max-w-5xl {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Reduce huge paddings on mobile */
+  .px-6 { padding-left: 16px !important; padding-right: 16px !important; }
+  .py-10 { padding-top: 28px !important; padding-bottom: 28px !important; }
+  .py-14 { padding-top: 32px !important; padding-bottom: 32px !important; }
+
+  /* Reduce big headings */
+  h1 { font-size: 28px !important; line-height: 1.15 !important; }
+  h2 { font-size: 22px !important; line-height: 1.2 !important; }
+
+  /* Reduce oversized hero/cover images */
+  .h-72 { height: 220px !important; }
+  .h-64 { height: 220px !important; }
+  .h-60 { height: 210px !important; }
+  .h-52 { height: 200px !important; }
+  .h-48 { height: 190px !important; }
+  .h-44 { height: 175px !important; }
+
+  /* Any custom heights like h-[330px], h-[420px]... */
+  [class*="h-["] {
+    max-height: 260px !important;
+  }
+
+  /* Cards become less tall */
+  .rounded-\[34px\],
+  .rounded-\[36px\],
+  .rounded-\[32px\],
+  .rounded-\[30px\],
+  .rounded-\[28px\] {
+    border-radius: 22px !important;
+  }
+
+  /* Prevent buttons/inputs from overflowing */
+  button, input, textarea, select {
+    max-width: 100%;
+  }
+}
+
+/* =========================
+   PREMIUM CURSOR (GLOBAL)
+========================= */
+
+body {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%236a2bd8' d='M6 2l20 12-10 2-2 10z'/%3E%3Cpath fill='%23ffffff' d='M8 5l15 9-7 1-1 7z' opacity='.9'/%3E%3C/svg%3E") 6 2, auto;
+}
+
+button, a, [role="button"] {
+  cursor: pointer;
+}
+
+input, textarea, select {
+  cursor: text;
+}
+
+/* Smooth scroll + nicer selection */
+html { scroll-behavior: smooth; }
+
+::selection {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+
