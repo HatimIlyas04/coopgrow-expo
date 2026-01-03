@@ -2,9 +2,8 @@ import express from "express";
 import { register, login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
-router.get("/test", (req, res) => {
-  res.json({ ok: true, route: "auth" });
-});
+
+router.get("/test", (_req, res) => res.json({ ok: true, route: "auth works" }));
 
 
 router.post("/register", register);
