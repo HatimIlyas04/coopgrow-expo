@@ -2,8 +2,8 @@ import express from "express";
 import { register, login } from "../controllers/auth.controller.js";
 const router = express.Router();
 
-router.get("/test", (_req, res) => {
-  res.json({ ok: true, route: "stands works ✅" });
+router.get("/", (req, res) => {
+  res.json({ ok: true, route: "auth works ✅" });
 });
 
 
