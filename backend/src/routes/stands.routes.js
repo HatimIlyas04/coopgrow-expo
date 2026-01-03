@@ -4,6 +4,9 @@ import { upload } from "../middleware/upload.js";
 import { uploadStandCover } from "../controllers/stands.upload.controller.js";
 
 import { getAllStands, getMyStands, createStand, getStandDetails } from "../controllers/stands.controller.js";
+router.get("/test", (req, res) => {
+  res.json({ ok: true, route: "stands" });
+});
 
 const router = express.Router();
 
