@@ -1,10 +1,11 @@
 import pool from "../config/db.js";
+import { fullImageUrl } from "../utils/url.js";
 
 /**
  * GET /api/stands
- * Public: returns approved stands + coop basic info (logo, city, etc)
+ * Public: approved stands + coop info
  */
-export const getAllStands = async (_req, res) => {
+export const getAllStands = async (req, res) => {
   try {
     const [stands] = await pool.query(`
       SELECT 
@@ -20,7 +21,14 @@ export const getAllStands = async (_req, res) => {
       ORDER BY s.created_at DESC
     `);
 
-    res.json(stands);
+    const fixed = stands.map((s) => ({
+      ...s,
+      // ✅ Full URL images
+      logo: fullImageUrl(req, s.logo),
+      cover_image: fullImageUrl(req, s.cover_image),
+    }));
+
+    res.json(fixed);
   } catch (err) {
     console.error("GET ALL STANDS ERROR:", err);
     res.status(500).json({ message: "Server error" });
@@ -29,7 +37,7 @@ export const getAllStands = async (_req, res) => {
 
 /**
  * GET /api/stands/:id
- * Public: details of one stand + coop info
+ * Public: stand details + coop info
  */
 export const getStandDetails = async (req, res) => {
   try {
@@ -56,7 +64,12 @@ export const getStandDetails = async (req, res) => {
       return res.status(404).json({ message: "Stand not found" });
     }
 
-    res.json(standRows[0]);
+    const stand = standRows[0];
+
+    stand.logo = fullImageUrl(req, stand.logo);
+    stand.cover_image = fullImageUrl(req, stand.cover_image);
+
+    res.json(stand);
   } catch (err) {
     console.error("GET STAND DETAILS ERROR:", err);
     res.status(500).json({ message: "Server error" });
@@ -93,6 +106,9 @@ export const createStand = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/stands/my (COOP)
+ */
 export const getMyStands = async (req, res) => {
   try {
     const [stands] = await pool.query(
@@ -105,7 +121,14 @@ export const getMyStands = async (req, res) => {
       `,
       [req.user.id]
     );
-    res.json(stands);
+
+    const fixed = stands.map((s) => ({
+      ...s,
+      logo: fullImageUrl(req, s.logo),
+      cover_image: fullImageUrl(req, s.cover_image),
+    }));
+
+    res.json(fixed);
   } catch (err) {
     console.error("GET MY STANDS ERROR:", err);
     res.status(500).json({ message: "Server error" });
