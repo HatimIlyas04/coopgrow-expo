@@ -6,9 +6,6 @@ router.get("/", (req, res) => {
   res.json({ ok: true, route: "auth works ✅" });
 });
 
-
-
-
 router.post("/register", register);
 router.post("/login", login);
 
