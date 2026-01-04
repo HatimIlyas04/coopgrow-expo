@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
-import fs from "fs";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.routes.js";
 import standsRoutes from "./routes/stands.routes.js";
@@ -13,30 +13,17 @@ import profileRoutes from "./routes/profile.routes.js";
 
 const app = express();
 
-/* ✅ 1) CORS CONFIG */
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://coopgrow-expo.vercel.app", // ✅ replace later if you have another vercel link
-    ],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-
-/* ✅ 2) BODY PARSER */
+app.use(cors());
 app.use(express.json());
 
-/* ✅ 3) Ensure uploads folder exists */
-const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+// ✅ Fix __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-/* ✅ 4) Serve uploads folder */
-app.use("/uploads", express.static(uploadDir));
+// ✅ Serve uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-/* ✅ 5) ROUTES */
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/stands", standsRoutes);
@@ -44,10 +31,8 @@ app.use("/api/products", productsRoutes);
 app.use("/api/requests", requestsRoutes);
 app.use("/api/admin", adminRoutes);
 
-/* ✅ 6) HOME */
 app.get("/", (_req, res) => res.send("CoopGrow Expo API ✅"));
 
-/* ✅ 7) START SERVER */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);

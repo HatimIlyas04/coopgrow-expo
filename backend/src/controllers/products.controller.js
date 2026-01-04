@@ -1,5 +1,6 @@
 // backend/src/controllers/products.controller.js
 import pool from "../config/db.js";
+import { fullImageUrl } from "../utils/url.js";
 
 // ✅ Create product
 export const createProduct = async (req, res) => {
@@ -37,12 +38,14 @@ export const updateProduct = async (req, res) => {
     const id = req.params.id;
     const { title, description, price, stock, is_visible } = req.body;
 
-    // Check ownership
-    const [rows] = await pool.query(`
+    const [rows] = await pool.query(
+      `
       SELECT p.* FROM products p
       JOIN stands s ON s.id=p.stand_id
       WHERE p.id=? AND s.user_id=?
-    `, [id, req.user.id]);
+    `,
+      [id, req.user.id]
+    );
 
     if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
 
@@ -76,15 +79,19 @@ export const deleteProduct = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const [rows] = await pool.query(`
+    const [rows] = await pool.query(
+      `
       SELECT p.* FROM products p
       JOIN stands s ON s.id=p.stand_id
       WHERE p.id=? AND s.user_id=?
-    `, [id, req.user.id]);
+    `,
+      [id, req.user.id]
+    );
 
     if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
 
     await pool.query("DELETE FROM products WHERE id=?", [id]);
+
     res.json({ message: "Produit supprimé" });
   } catch (err) {
     console.error("DELETE PRODUCT ERROR:", err);
@@ -103,7 +110,13 @@ export const getMyProducts = async (req, res) => {
       [stand[0].id]
     );
 
-    res.json(products);
+    // ✅ Fix images to full URL
+    const fixed = products.map((p) => ({
+      ...p,
+      image: fullImageUrl(req, p.image),
+    }));
+
+    res.json(fixed);
   } catch (err) {
     console.error("GET MY PRODUCTS ERROR:", err);
     res.status(500).json({ message: "Server error" });
@@ -117,18 +130,25 @@ export const uploadProductImage = async (req, res) => {
     if (!req.file) return res.status(400).json({ message: "Image requise" });
 
     // ownership check
-    const [rows] = await pool.query(`
+    const [rows] = await pool.query(
+      `
       SELECT p.* FROM products p
       JOIN stands s ON s.id=p.stand_id
       WHERE p.id=? AND s.user_id=?
-    `, [id, req.user.id]);
+    `,
+      [id, req.user.id]
+    );
 
     if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
 
-    const imagePath = `/uploads/${req.file.filename}`;
+    const imagePath = `uploads/${req.file.filename}`; // ✅ no leading slash
     await pool.query("UPDATE products SET image=? WHERE id=?", [imagePath, id]);
 
-    res.json({ message: "Image upload ok", image: imagePath });
+    // ✅ Return full URL
+    res.json({
+      message: "Image upload ok",
+      image: fullImageUrl(req, imagePath),
+    });
   } catch (err) {
     console.error("UPLOAD PRODUCT IMAGE ERROR:", err);
     res.status(500).json({ message: "Server error" });
