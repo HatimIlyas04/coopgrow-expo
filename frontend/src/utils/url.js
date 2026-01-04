@@ -1,12 +1,16 @@
+// backend/src/utils/url.js
+
 export function fullImageUrl(req, path) {
   if (!path) return null;
 
-  // if already full url
+  // already full URL
   if (path.startsWith("http")) return path;
 
-  const base =
-    process.env.APP_URL ||
-    `${req.protocol}://${req.get("host")}`;
+  // remove any leading slash
+  const clean = path.startsWith("/") ? path.slice(1) : path;
 
-  return `${base}/${path}`;
+  // detect host automatically from request
+  const base = `${req.protocol}://${req.get("host")}`;
+
+  return `${base}/${clean}`;
 }
