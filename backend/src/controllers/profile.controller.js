@@ -4,16 +4,14 @@ import { fullImageUrl } from "../utils/url.js";
 export async function getMyProfile(req, res) {
   try {
     const [rows] = await db.query(
-      `SELECT id, full_name, email, phone, whatsapp, city, role, is_approved, logo, bio 
+      `SELECT id, full_name, email, phone, whatsapp, city, role, is_approved, logo, bio
        FROM users WHERE id=?`,
       [req.user.id]
     );
 
-    if (!rows.length) return res.status(404).json({ message: "User not found" });
+    if (!rows.length) return res.status(404).json({ message: "Utilisateur introuvable" });
 
     const user = rows[0];
-
-    // ✅ Fix logo url
     user.logo = fullImageUrl(req, user.logo);
 
     return res.json(user);
@@ -43,9 +41,7 @@ export async function uploadLogo(req, res) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // ✅ Store only clean path (no slash)
-    const filePath = `uploads/${req.file.filename}`;
-
+    const filePath = `/uploads/${req.file.filename}`;
     await db.query("UPDATE users SET logo=? WHERE id=?", [filePath, req.user.id]);
 
     return res.json({
