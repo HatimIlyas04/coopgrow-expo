@@ -1,4 +1,3 @@
-// backend/src/controllers/products.controller.js
 import pool from "../config/db.js";
 
 // ✅ Create product
@@ -9,7 +8,7 @@ export const createProduct = async (req, res) => {
     if (!stand_id) return res.status(400).json({ message: "stand_id obligatoire" });
     if (!title) return res.status(400).json({ message: "title is required" });
 
-    // verify stand belongs to current coop
+    // ✅ verify stand belongs to current coop
     const [sRows] = await pool.query(
       "SELECT * FROM stands WHERE id=? AND user_id=?",
       [stand_id, req.user.id]
@@ -37,12 +36,15 @@ export const updateProduct = async (req, res) => {
     const id = req.params.id;
     const { title, description, price, stock, is_visible } = req.body;
 
-    // Check ownership
-    const [rows] = await pool.query(`
+    // ✅ Check ownership
+    const [rows] = await pool.query(
+      `
       SELECT p.* FROM products p
       JOIN stands s ON s.id=p.stand_id
       WHERE p.id=? AND s.user_id=?
-    `, [id, req.user.id]);
+      `,
+      [id, req.user.id]
+    );
 
     if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
 
@@ -64,7 +66,7 @@ export const updateProduct = async (req, res) => {
       ]
     );
 
-    res.json({ message: "Produit modifié" });
+    res.json({ message: "Produit modifié ✅" });
   } catch (err) {
     console.error("UPDATE PRODUCT ERROR:", err);
     res.status(500).json({ message: "Server error" });
@@ -76,16 +78,19 @@ export const deleteProduct = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const [rows] = await pool.query(`
+    const [rows] = await pool.query(
+      `
       SELECT p.* FROM products p
       JOIN stands s ON s.id=p.stand_id
       WHERE p.id=? AND s.user_id=?
-    `, [id, req.user.id]);
+      `,
+      [id, req.user.id]
+    );
 
     if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
 
     await pool.query("DELETE FROM products WHERE id=?", [id]);
-    res.json({ message: "Produit supprimé" });
+    res.json({ message: "Produit supprimé ✅" });
   } catch (err) {
     console.error("DELETE PRODUCT ERROR:", err);
     res.status(500).json({ message: "Server error" });
@@ -110,25 +115,18 @@ export const getMyProducts = async (req, res) => {
   }
 };
 
-// ✅ Upload product image
+// ✅ Upload product image (Cloudinary)
 export const uploadProductImage = async (req, res) => {
   try {
     const id = req.params.id;
     if (!req.file) return res.status(400).json({ message: "Image requise" });
 
-    // ownership check
-    const [rows] = await pool.query(`
-      SELECT p.* FROM products p
-      JOIN stands s ON s.id=p.stand_id
-      WHERE p.id=? AND s.user_id=?
-    `, [id, req.user.id]);
+    // ✅ Cloudinary URL
+    const imageUrl = req.file.path;
 
-    if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
+    await pool.query("UPDATE products SET image=? WHERE id=?", [imageUrl, id]);
 
-    const imagePath = `/uploads/${req.file.filename}`;
-    await pool.query("UPDATE products SET image=? WHERE id=?", [imagePath, id]);
-
-    res.json({ message: "Image upload ok", image: imagePath });
+    res.json({ message: "Image upload ok ✅", image: imageUrl });
   } catch (err) {
     console.error("UPLOAD PRODUCT IMAGE ERROR:", err);
     res.status(500).json({ message: "Server error" });

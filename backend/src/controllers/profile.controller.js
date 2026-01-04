@@ -7,6 +7,9 @@ export async function getMyProfile(req, res) {
        FROM users WHERE id=?`,
       [req.user.id]
     );
+
+    if (!rows.length) return res.status(404).json({ message: "Utilisateur introuvable" });
+
     return res.json(rows[0]);
   } catch (err) {
     console.error("GET PROFILE ERROR:", err);
@@ -34,10 +37,11 @@ export async function uploadLogo(req, res) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const filePath = `/uploads/${req.file.filename}`;
-    await db.query("UPDATE users SET logo=? WHERE id=?", [filePath, req.user.id]);
+    const imageUrl = req.file.path; // ✅ Cloudinary URL
 
-    return res.json({ message: "Logo upload ✅", logo: filePath });
+    await db.query("UPDATE users SET logo=? WHERE id=?", [imageUrl, req.user.id]);
+
+    return res.json({ message: "Logo upload ✅", logo: imageUrl });
   } catch (err) {
     console.error("UPLOAD LOGO ERROR:", err);
     return res.status(500).json({ message: "Erreur serveur" });
