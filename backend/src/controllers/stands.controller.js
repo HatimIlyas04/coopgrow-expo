@@ -1,136 +1,45 @@
 import pool from "../config/db.js";
-import { fullImageUrl } from "../utils/url.js";
 
-/**
- * GET /api/stands
- * Public: approved stands + coop info
- */
-export const getAllStands = async (req, res) => {
+export const updateStand = async (req, res) => {
   try {
-    const [stands] = await pool.query(`
-      SELECT 
-        s.*,
-        u.full_name AS coop_name,
-        u.phone AS coop_phone,
-        u.whatsapp AS coop_whatsapp,
-        u.city,
-        u.logo
-      FROM stands s
-      JOIN users u ON u.id = s.user_id
-      WHERE s.is_approved = 1
-      ORDER BY s.created_at DESC
-    `);
+    const standId = Number(req.params.id);
+    const { stand_name, description, category, address } = req.body;
 
-    const fixed = stands.map((s) => ({
-      ...s,
-      // ✅ Full URL images
-      logo: fullImageUrl(req, s.logo),
-      cover_image: fullImageUrl(req, s.cover_image),
-    }));
+    const [rows] = await pool.query(
+      "SELECT * FROM stands WHERE id=? AND user_id=?",
+      [standId, req.user.id]
+    );
+    if (!rows.length) return res.status(403).json({ message: "Stand غير تابع لك" });
 
-    res.json(fixed);
+    await pool.query(
+      "UPDATE stands SET stand_name=?, description=?, category=?, address=? WHERE id=?",
+      [stand_name, description, category, address, standId]
+    );
+
+    res.json({ message: "✅ Stand updated" });
   } catch (err) {
-    console.error("GET ALL STANDS ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("UPDATE STAND ERROR:", err);
+    res.status(500).json({ message: "Erreur update stand" });
   }
 };
 
-/**
- * GET /api/stands/:id
- * Public: stand details + coop info
- */
-export const getStandDetails = async (req, res) => {
+export const deleteStand = async (req, res) => {
   try {
-    const standId = req.params.id;
+    const standId = Number(req.params.id);
 
-    const [standRows] = await pool.query(
-      `
-      SELECT 
-        s.*,
-        u.full_name AS coop_name,
-        u.phone AS coop_phone,
-        u.whatsapp AS coop_whatsapp,
-        u.city,
-        u.logo,
-        u.bio
-      FROM stands s
-      JOIN users u ON u.id = s.user_id
-      WHERE s.id = ?
-      `,
-      [standId]
+    const [rows] = await pool.query(
+      "SELECT * FROM stands WHERE id=? AND user_id=?",
+      [standId, req.user.id]
     );
+    if (!rows.length) return res.status(403).json({ message: "Stand غير تابع لك" });
 
-    if (!standRows.length) {
-      return res.status(404).json({ message: "Stand not found" });
-    }
+    await pool.query("DELETE FROM requests WHERE stand_id=?", [standId]);
+    await pool.query("DELETE FROM products WHERE stand_id=?", [standId]);
+    await pool.query("DELETE FROM stands WHERE id=?", [standId]);
 
-    const stand = standRows[0];
-
-    stand.logo = fullImageUrl(req, stand.logo);
-    stand.cover_image = fullImageUrl(req, stand.cover_image);
-
-    res.json(stand);
+    res.json({ message: "✅ Stand deleted" });
   } catch (err) {
-    console.error("GET STAND DETAILS ERROR:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-/**
- * POST /api/stands (COOP)
- */
-export const createStand = async (req, res) => {
-  try {
-    const { stand_name, description, category, address, cover_image } = req.body;
-    if (!stand_name) return res.status(400).json({ message: "Stand name is required" });
-
-    const [result] = await pool.query(
-      `
-      INSERT INTO stands (user_id, stand_name, description, category, address, cover_image, is_approved)
-      VALUES (?, ?, ?, ?, ?, ?, 0)
-      `,
-      [
-        req.user.id,
-        stand_name,
-        description || null,
-        category || null,
-        address || null,
-        cover_image || null,
-      ]
-    );
-
-    res.json({ message: "Stand created, pending approval.", stand_id: result.insertId });
-  } catch (err) {
-    console.error("CREATE STAND ERROR:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-/**
- * GET /api/stands/my (COOP)
- */
-export const getMyStands = async (req, res) => {
-  try {
-    const [stands] = await pool.query(
-      `
-      SELECT s.*, u.full_name, u.phone, u.whatsapp, u.city, u.logo
-      FROM stands s
-      JOIN users u ON u.id = s.user_id
-      WHERE s.user_id = ?
-      ORDER BY s.created_at DESC
-      `,
-      [req.user.id]
-    );
-
-    const fixed = stands.map((s) => ({
-      ...s,
-      logo: fullImageUrl(req, s.logo),
-      cover_image: fullImageUrl(req, s.cover_image),
-    }));
-
-    res.json(fixed);
-  } catch (err) {
-    console.error("GET MY STANDS ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("DELETE STAND ERROR:", err);
+    res.status(500).json({ message: "Erreur delete stand" });
   }
 };
