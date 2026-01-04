@@ -129,25 +129,13 @@ export const uploadProductImage = async (req, res) => {
     const id = req.params.id;
     if (!req.file) return res.status(400).json({ message: "Image requise" });
 
-    // ownership check
-    const [rows] = await pool.query(
-      `
-      SELECT p.* FROM products p
-      JOIN stands s ON s.id=p.stand_id
-      WHERE p.id=? AND s.user_id=?
-    `,
-      [id, req.user.id]
-    );
+    const imagePath = `/uploads/${req.file.filename}`; // ✅ هنا
 
-    if (!rows.length) return res.status(404).json({ message: "Produit introuvable" });
-
-    const imagePath = `uploads/${req.file.filename}`; // ✅ no leading slash
     await pool.query("UPDATE products SET image=? WHERE id=?", [imagePath, id]);
 
-    // ✅ Return full URL
     res.json({
-      message: "Image upload ok",
-      image: fullImageUrl(req, imagePath),
+      message: "Image upload ok ✅",
+      image: imagePath,
     });
   } catch (err) {
     console.error("UPLOAD PRODUCT IMAGE ERROR:", err);
