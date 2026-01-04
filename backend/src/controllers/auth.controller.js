@@ -1,79 +1,65 @@
-import db from "../config/db.js";
-import bcrypt from "bcrypt";
+import pool from "../config/db.js";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-export async function register(req, res) {
+export const register = async (req, res) => {
   try {
-    const { full_name, email, password, phone, whatsapp, city } = req.body;
+    const { full_name, email, password } = req.body;
 
     if (!full_name || !email || !password) {
-      return res.status(400).json({ message: "Champs obligatoires manquants." });
+      return res.status(400).json({ message: "Tous les champs sont obligatoires" });
     }
 
-    const [exists] = await db.query("SELECT id FROM users WHERE email = ?", [email]);
-    if (exists.length) {
-      return res.status(400).json({ message: "Cet email existe déjà." });
-    }
+    const [exists] = await pool.query("SELECT id FROM users WHERE email=?", [email]);
+    if (exists.length) return res.status(400).json({ message: "Email déjà utilisé" });
 
-    const hash = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 10);
 
-    // COOP accounts start as pending (is_approved = 0)
-    const [result] = await db.query(
-      `INSERT INTO users (full_name, email, password_hash, role, phone, whatsapp, city, is_approved)
-       VALUES (?, ?, ?, 'COOP', ?, ?, ?, 0)`,
-      [full_name, email, hash, phone || null, whatsapp || null, city || null]
+    await pool.query(
+      "INSERT INTO users (full_name, email, password, role, is_approved) VALUES (?, ?, ?, 'COOP', 0)",
+      [full_name, email, hashed]
     );
 
-    return res.json({
-      message: "Compte créé. En attente de validation par l'administration.",
-      user_id: result.insertId,
-    });
+    res.json({ message: "Inscription réussie ✅" });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
-    return res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({ message: "Server error" });
   }
-}
+};
 
-export async function login(req, res) {
+export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    console.log("LOGIN BODY:", req.body);
 
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (!rows.length) {
-      return res.status(400).json({ message: "Email ou mot de passe incorrect." });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email et mot de passe requis" });
     }
+
+    const [rows] = await pool.query("SELECT * FROM users WHERE email=?", [email]);
+    console.log("USER FOUND:", rows.length);
+
+    if (!rows.length) return res.status(401).json({ message: "Email incorrect" });
 
     const user = rows[0];
 
-    // block COOP login if not approved
-    if (user.role === "COOP" && user.is_approved !== 1) {
-      return res.status(403).json({
-        message: "Votre compte est en attente de validation par l'administration.",
-      });
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) return res.status(401).json({ message: "Mot de passe incorrect" });
+
+    if (!process.env.JWT_SECRET) {
+      console.log("JWT_SECRET is missing!");
+      return res.status(500).json({ message: "JWT_SECRET missing in env" });
     }
 
-    const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) {
-      return res.status(400).json({ message: "Email ou mot de passe incorrect." });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    return res.json({
-      token,
-      user: {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        role: user.role,
-      },
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
     });
+
+    delete user.password;
+
+    res.json({ token, user });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    return res.status(500).json({ message: "Erreur serveur", error: err.message });
+    res.status(500).json({ message: "Server error" });
   }
-}
+};
