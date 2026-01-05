@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
@@ -11,14 +12,18 @@ import Profile from "./pages/Profile";
 import CoopDashboard from "./pages/CoopDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
+const API = import.meta.env.VITE_API_URL;
 
 export default function App() {
-  // ✅ Wake up backend (Render free)
+  // ✅ Wake up backend (Render free cold start)
   useEffect(() => {
+    if (!API) return console.log("❌ VITE_API_URL is missing");
+    
     fetch(API)
       .then(() => console.log("✅ Backend woke up"))
       .catch(() => console.log("❌ Backend not ready yet"));
   }, []);
+
   return (
     <BrowserRouter>
       <Navbar />
