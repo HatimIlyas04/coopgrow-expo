@@ -11,7 +11,14 @@ import Profile from "./pages/Profile";
 import CoopDashboard from "./pages/CoopDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
+
 export default function App() {
+  // ✅ Wake up backend (Render free)
+  useEffect(() => {
+    fetch(API)
+      .then(() => console.log("✅ Backend woke up"))
+      .catch(() => console.log("❌ Backend not ready yet"));
+  }, []);
   return (
     <BrowserRouter>
       <Navbar />
