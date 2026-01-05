@@ -64,21 +64,23 @@ export default function Profile() {
   const uploadLogo = async () => {
     if (!logoFile) return setMsg("Choisissez une image.");
     setMsg("");
+
     try {
       const fd = new FormData();
       fd.append("logo", logoFile);
 
-      await api.post("/profile/me/logo", fd, {
+      const res = await api.post("/profile/me/logo", fd, {
         headers: {
           ...headers,
-          "Content-Type": "multipart/form-data",
         },
       });
 
       await fetchProfile();
       setLogoFile(null);
       setMsg("✅ Logo upload avec succès");
+      console.log("UPLOAD RESULT:", res.data);
     } catch (e) {
+      console.log("UPLOAD ERROR:", e);
       setMsg(e.response?.data?.message || "Erreur upload logo");
     }
   };
@@ -106,7 +108,7 @@ export default function Profile() {
               <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-black/5 overflow-hidden">
                 {profile?.logo ? (
                   <img
-                    src={`http://localhost:5000${profile.logo}`}
+                    src={profile.logo} // ✅ important (cloudinary / full url)
                     className="w-full h-full object-cover"
                     alt="logo"
                   />

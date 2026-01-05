@@ -8,7 +8,7 @@ export async function getMyProfile(req, res) {
       [req.user.id]
     );
 
-    if (!rows.length) return res.status(404).json({ message: "Utilisateur introuvable" });
+    if (!rows.length) return res.status(404).json({ message: "User not found" });
 
     return res.json(rows[0]);
   } catch (err) {
@@ -37,13 +37,14 @@ export async function uploadLogo(req, res) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const imageUrl = req.file.path; // ✅ Cloudinary URL
+    // ✅ Cloudinary returns URL in req.file.path
+    const logoUrl = req.file.path;
 
-    await db.query("UPDATE users SET logo=? WHERE id=?", [imageUrl, req.user.id]);
+    await db.query("UPDATE users SET logo=? WHERE id=?", [logoUrl, req.user.id]);
 
-    return res.json({ message: "Logo upload ✅", logo: imageUrl });
+    res.json({ message: "Logo upload ✅", logo: logoUrl });
   } catch (err) {
     console.error("UPLOAD LOGO ERROR:", err);
-    return res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 }

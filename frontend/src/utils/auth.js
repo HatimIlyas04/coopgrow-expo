@@ -2,6 +2,8 @@
 
 const TOKEN_KEY = "cg_token";
 const USER_KEY = "cg_user";
+const token = localStorage.getItem("token");
+
 
 export const setAuth = (token, user) => {
   localStorage.setItem(TOKEN_KEY, token);
