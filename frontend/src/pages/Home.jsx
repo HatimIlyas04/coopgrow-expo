@@ -1,6 +1,9 @@
 // Home.jsx
 import { Link } from "react-router-dom";
 
+
+
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#f7f3fb] relative overflow-hidden">

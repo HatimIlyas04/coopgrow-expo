@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import Spinner from "../components/spinner";
+
+if (loading) return <Spinner />;
 
 const API_HOST = "http://localhost:5000";
 

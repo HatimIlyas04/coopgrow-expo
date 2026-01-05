@@ -1,7 +1,7 @@
 import pool from "../config/db.js";
+import { fullImageUrl } from "../utils/url.js";
 
-// ✅ GET /api/stands (public)
-export const getAllStands = async (_req, res) => {
+export const getAllStands = async (req, res) => {
   try {
     const [stands] = await pool.query(`
       SELECT 
@@ -17,14 +17,19 @@ export const getAllStands = async (_req, res) => {
       ORDER BY s.created_at DESC
     `);
 
-    res.json(stands);
+    const fixed = stands.map((s) => ({
+      ...s,
+      logo: fullImageUrl(req, s.logo),
+      cover_image: fullImageUrl(req, s.cover_image),
+    }));
+
+    res.json(fixed);
   } catch (err) {
     console.error("GET ALL STANDS ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ GET /api/stands/:id (public)
 export const getStandDetails = async (req, res) => {
   try {
     const standId = req.params.id;
@@ -48,21 +53,22 @@ export const getStandDetails = async (req, res) => {
 
     if (!rows.length) return res.status(404).json({ message: "Stand not found" });
 
-    res.json(rows[0]);
+    const stand = rows[0];
+    stand.logo = fullImageUrl(req, stand.logo);
+    stand.cover_image = fullImageUrl(req, stand.cover_image);
+
+    res.json(stand);
   } catch (err) {
     console.error("GET STAND DETAILS ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ POST /api/stands (COOP)
 export const createStand = async (req, res) => {
   try {
     const { stand_name, description, category, address } = req.body;
 
-    if (!stand_name) {
-      return res.status(400).json({ message: "Stand name is required" });
-    }
+    if (!stand_name) return res.status(400).json({ message: "Stand name is required" });
 
     const [result] = await pool.query(
       `
@@ -79,7 +85,6 @@ export const createStand = async (req, res) => {
   }
 };
 
-// ✅ GET /api/stands/me/list (COOP)
 export const getMyStands = async (req, res) => {
   try {
     const [stands] = await pool.query(
@@ -93,7 +98,13 @@ export const getMyStands = async (req, res) => {
       [req.user.id]
     );
 
-    res.json(stands);
+    const fixed = stands.map((s) => ({
+      ...s,
+      logo: fullImageUrl(req, s.logo),
+      cover_image: fullImageUrl(req, s.cover_image),
+    }));
+
+    res.json(fixed);
   } catch (err) {
     console.error("GET MY STANDS ERROR:", err);
     res.status(500).json({ message: "Server error" });

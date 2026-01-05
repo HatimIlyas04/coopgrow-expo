@@ -5,6 +5,10 @@ import { getUser, getToken, logout } from "../utils/auth";
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Spinner from "../components/spinner";
+
+if (loading) return <Spinner />;
+
 
 export default function AdminDashboard() {
   const nav = useNavigate();

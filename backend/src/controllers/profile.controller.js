@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { fullImageUrl } from "../utils/url.js";
 
 export async function getMyProfile(req, res) {
   try {
@@ -8,9 +9,12 @@ export async function getMyProfile(req, res) {
       [req.user.id]
     );
 
-    if (!rows.length) return res.status(404).json({ message: "User not found" });
+    if (!rows.length) return res.status(404).json({ message: "Utilisateur introuvable" });
 
-    return res.json(rows[0]);
+    const user = rows[0];
+    user.logo = fullImageUrl(req, user.logo);
+
+    return res.json(user);
   } catch (err) {
     console.error("GET PROFILE ERROR:", err);
     return res.status(500).json({ message: "Erreur serveur" });
@@ -37,14 +41,16 @@ export async function uploadLogo(req, res) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // ✅ Cloudinary returns URL in req.file.path
-    const logoUrl = req.file.path;
+    const filePath = `/uploads/${req.file.filename}`;
 
-    await db.query("UPDATE users SET logo=? WHERE id=?", [logoUrl, req.user.id]);
+    await db.query("UPDATE users SET logo=? WHERE id=?", [filePath, req.user.id]);
 
-    res.json({ message: "Logo upload ✅", logo: logoUrl });
+    return res.json({
+      message: "Logo upload ✅",
+      logo: fullImageUrl(req, filePath),
+    });
   } catch (err) {
     console.error("UPLOAD LOGO ERROR:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    return res.status(500).json({ message: "Erreur serveur" });
   }
 }

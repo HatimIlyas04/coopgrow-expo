@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import { getToken } from "../utils/auth";
+import Spinner from "../components/spinner";
+
+if (loading) return <Spinner />;
+
 
 export default function Profile() {
   const token = getToken();
