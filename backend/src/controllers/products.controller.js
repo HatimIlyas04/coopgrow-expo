@@ -65,11 +65,13 @@ export const uploadProductImage = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// ✅ ADD THIS (it was missing)
 export const deleteProduct = async (req, res) => {
   try {
     const id = req.params.id;
 
-    // كنحذف غير product ديال stand ديال user باش مايحذفش شي حد آخر
+    // ensure user owns the stand
     const [stand] = await pool.query("SELECT id FROM stands WHERE user_id=?", [req.user.id]);
     if (!stand.length) return res.status(403).json({ message: "Stand introuvable" });
 
