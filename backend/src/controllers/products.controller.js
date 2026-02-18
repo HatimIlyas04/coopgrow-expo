@@ -90,3 +90,53 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+export const updateProduct = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { title, description, price, is_visible } = req.body;
+
+    // تأكد المستخدم عندو stand
+    const [stand] = await pool.query("SELECT id FROM stands WHERE user_id=?", [req.user.id]);
+    if (!stand.length) return res.status(403).json({ message: "Stand introuvable" });
+
+    const fields = [];
+    const values = [];
+
+    if (title !== undefined) {
+      fields.push("title=?");
+      values.push(title);
+    }
+    if (description !== undefined) {
+      fields.push("description=?");
+      values.push(description);
+    }
+    if (price !== undefined) {
+      fields.push("price=?");
+      values.push(price);
+    }
+    if (is_visible !== undefined) {
+      fields.push("is_visible=?");
+      values.push(is_visible ? 1 : 0);
+    }
+
+    if (!fields.length) {
+      return res.status(400).json({ message: "Aucun champ à modifier" });
+    }
+
+    values.push(id, stand[0].id);
+
+    const [result] = await pool.query(
+      `UPDATE products SET ${fields.join(", ")} WHERE id=? AND stand_id=?`,
+      values
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product introuvable" });
+    }
+
+    res.json({ message: "Product updated successfully" });
+  } catch (err) {
+    console.error("UPDATE PRODUCT ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
