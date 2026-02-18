@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import Spinner from "../components/spinner";
+import { imageUrl } from "../utils/imageUrl";
+
 
 if (loading) return <Spinner />;
 
 
-const API_HOST = "http://localhost:5000";
 
 export default function StandPage() {
   const [stands, setStands] = useState([]);
@@ -180,8 +181,9 @@ export default function StandPage() {
 /* ---------------- COMPONENTS ---------------- */
 
 function StandCard({ s }) {
-  const cover = s.cover_image ? `${API_HOST}${s.cover_image}` : null;
-  const logo = s.logo ? `${API_HOST}${s.logo}` : null;
+const cover = s.cover_image ? imageUrl(s.cover_image) : null;
+const logo = s.logo ? imageUrl(s.logo) : null;
+
 
   return (
     <Link

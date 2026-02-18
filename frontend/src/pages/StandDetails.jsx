@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Spinner from "../components/spinner";
+import { imageUrl } from "../utils/imageUrl";
+
 
 if (loading) return <Spinner />;
 
-const API_HOST = "http://localhost:5000";
 
 export default function StandDetails() {
   const { id } = useParams();
@@ -28,13 +29,10 @@ export default function StandDetails() {
     visitor_message: "",
   });
 
-  const cover = useMemo(() => {
-    return stand?.cover_image ? `${API_HOST}${stand.cover_image}` : null;
-  }, [stand]);
+const cover = useMemo(() => (stand?.cover_image ? imageUrl(stand.cover_image) : null), [stand]);
+const logo = useMemo(() => (stand?.logo ? imageUrl(stand.logo) : null), [stand]);
 
-  const logo = useMemo(() => {
-    return stand?.logo ? `${API_HOST}${stand.logo}` : null;
-  }, [stand]);
+
 
   const fetchAll = async () => {
     setLoading(true);
@@ -340,8 +338,8 @@ export default function StandDetails() {
 
 function ProductCard({ p, onOrder }) {
   // ✅ IMPORTANT: works for both image and main_image
-  const imgPath = p.image || p.main_image;
-  const img = imgPath ? `http://localhost:5000${imgPath}` : null;
+const imgPath = p.image || p.main_image;
+const img = imgPath ? imageUrl(imgPath) : null;
 
   return (
     <div className="group rounded-[28px] overflow-hidden bg-white border border-gray-200 shadow-[0_10px_30px_rgba(16,24,40,0.06)] hover:shadow-[0_18px_45px_rgba(16,24,40,0.12)] transition">
