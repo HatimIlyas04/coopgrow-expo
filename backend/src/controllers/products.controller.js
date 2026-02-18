@@ -1,5 +1,7 @@
 import pool from "../config/db.js";
 import { fullImageUrl } from "../utils/url.js";
+import { getUploadedUrl } from "../utils/uploadUrl.js";
+
 
 export const createProduct = async (req, res) => {
   try {
@@ -53,18 +55,32 @@ export const uploadProductImage = async (req, res) => {
     const id = req.params.id;
     if (!req.file) return res.status(400).json({ message: "Image requise" });
 
-    const imagePath = `/uploads/${req.file.filename}`;
-    await pool.query("UPDATE products SET image=? WHERE id=?", [imagePath, id]);
+    const imageUrl = getUploadedUrl(req);
+    if (!imageUrl) return res.status(400).json({ message: "Upload failed" });
+
+    // حماية: المنتج خاصو يكون ديال نفس user (عبر stand ديالو)
+    const [stand] = await pool.query("SELECT id FROM stands WHERE user_id=?", [req.user.id]);
+    if (!stand.length) return res.status(403).json({ message: "Stand introuvable" });
+
+    const [result] = await pool.query(
+      "UPDATE products SET image=? WHERE id=? AND stand_id=?",
+      [imageUrl, id, stand[0].id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product introuvable" });
+    }
 
     res.json({
       message: "Image upload ok",
-      image: fullImageUrl(req, imagePath),
+      image: imageUrl, // Cloudinary URL غالباً
     });
   } catch (err) {
     console.error("UPLOAD PRODUCT IMAGE ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // ✅ ADD THIS (it was missing)
 export const deleteProduct = async (req, res) => {
