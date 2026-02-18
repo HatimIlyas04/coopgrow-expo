@@ -45,3 +45,5 @@ app.get("/", (_req, res) => res.send("CoopGrow Expo API ✅"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Backend running on port ${PORT}`));
+app.get("/api", (_req, res) => res.send("API OK ✅"));
+

@@ -21,5 +21,8 @@ router.get("/:id", getStandDetails);
 router.get("/me/list", authMiddleware, getMyStands);
 router.post("/", authMiddleware, createStand);
 router.post("/:standId/cover", authMiddleware, uploadCloud.single("cover"), uploadStandCover);
+router.post("/:id/cover", authMiddleware, uploadCloud.single("image"), uploadStandCover);
+router.post("/:id/logo", authMiddleware, uploadCloud.single("image"), uploadStandLogo);
+
 
 export default router;
