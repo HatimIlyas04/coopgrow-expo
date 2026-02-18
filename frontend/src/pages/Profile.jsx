@@ -6,7 +6,7 @@ import Spinner from "../components/spinner";
 if (loading) return <Spinner />;
 
 
-export default function Profile() {
+export default function  Profile() {
   const token = getToken();
   const headers = useMemo(
     () => ({ Authorization: `Bearer ${token}` }),

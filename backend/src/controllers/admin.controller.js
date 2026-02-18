@@ -1,5 +1,6 @@
 import db from "../config/db.js";
 
+
 export const getPendingStands = async (req, res) => {
   try {
     const [rows] = await db.query(
