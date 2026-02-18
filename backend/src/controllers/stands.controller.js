@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 import { fullImageUrl } from "../utils/url.js";
 
+
 export const getAllStands = async (req, res) => {
   try {
     const [stands] = await pool.query(`

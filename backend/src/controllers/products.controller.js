@@ -65,3 +65,26 @@ export const uploadProductImage = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+export const deleteProduct = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    // كنحذف غير product ديال stand ديال user باش مايحذفش شي حد آخر
+    const [stand] = await pool.query("SELECT id FROM stands WHERE user_id=?", [req.user.id]);
+    if (!stand.length) return res.status(403).json({ message: "Stand introuvable" });
+
+    const [result] = await pool.query(
+      "DELETE FROM products WHERE id=? AND stand_id=?",
+      [id, stand[0].id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product introuvable" });
+    }
+
+    res.json({ message: "Product deleted successfully" });
+  } catch (err) {
+    console.error("DELETE PRODUCT ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
