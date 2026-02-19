@@ -5,7 +5,6 @@ import Spinner from "../components/spinner";
 import { imageUrl } from "../utils/imageUrl";
 
 
-if (loading) return <Spinner />;
 
 
 export default function StandDetails() {

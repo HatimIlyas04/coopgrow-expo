@@ -58,7 +58,6 @@ export const uploadProductImage = async (req, res) => {
     const imageUrl = getUploadedUrl(req);
     if (!imageUrl) return res.status(400).json({ message: "Upload failed" });
 
-    // حماية: المنتج خاصو يكون ديال نفس user (عبر stand ديالو)
     const [stand] = await pool.query("SELECT id FROM stands WHERE user_id=?", [req.user.id]);
     if (!stand.length) return res.status(403).json({ message: "Stand introuvable" });
 
@@ -71,15 +70,13 @@ export const uploadProductImage = async (req, res) => {
       return res.status(404).json({ message: "Product introuvable" });
     }
 
-    res.json({
-      message: "Image upload ok",
-      image: imageUrl, // Cloudinary URL غالباً
-    });
+    res.json({ message: "Image upload ok", image: imageUrl });
   } catch (err) {
     console.error("UPLOAD PRODUCT IMAGE ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 // ✅ ADD THIS (it was missing)
