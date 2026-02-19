@@ -19,18 +19,28 @@ export default function StandPage() {
   const [city, setCity] = useState("ALL");
   const [category, setCategory] = useState("ALL");
 
-  const fetchStands = async () => {
-    setLoading(true);
-    setErr("");
-    try {
-      const { data } = await api.get("/stands");
-      setStands(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Erreur lors du chargement des stands");
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchStands = async () => {
+  setLoading(true);
+  setErr("");
+
+  // 1) show cached instantly
+  const cached = localStorage.getItem("stands_cache");
+  if (cached) {
+    try { setStands(JSON.parse(cached)); } catch {}
+  }
+
+  try {
+    const { data } = await api.get("/stands");
+    const arr = Array.isArray(data) ? data : [];
+    setStands(arr);
+    localStorage.setItem("stands_cache", JSON.stringify(arr));
+  } catch (e) {
+    setErr(e?.response?.data?.message || "Erreur lors du chargement des stands");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchStands();
