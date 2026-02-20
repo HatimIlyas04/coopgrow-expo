@@ -1,10 +1,22 @@
-export function imageUrl(value) {
-  if (!value) return "";
-  if (/^https?:\/\//i.test(value)) return value;
+// frontend/src/utils/imageUrl.js
 
-  const api = (import.meta.env.VITE_API_URL || "").trim();
-  const base = api.replace(/\/api\/?$/i, "");
+const API_BASE = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")
+  : "http://localhost:5000";
 
-  const path = value.startsWith("/") ? value : `/${value}`;
-  return `${base}${path}`;
-}
+// كيرجع URL صحيحة فـ 3 حالات:
+// 1) null -> null
+// 2) https://... -> نفسو
+// 3) /uploads/... -> API_BASE + /uploads/...
+export const imageUrl = (path) => {
+  if (!path) return null;
+
+  // already full url
+  if (typeof path === "string" && (path.startsWith("http://") || path.startsWith("https://"))) {
+    return path;
+  }
+
+  // ensure starts with /
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${clean}`;
+};

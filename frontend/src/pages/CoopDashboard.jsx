@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { getToken, getUser, logout } from "../utils/auth";
+import { imageUrl } from "../utils/imageUrl";
 
-const API_HOST = "http://localhost:5000";
+
 
 export default function CoopDashboard() {
   const nav = useNavigate();
@@ -164,7 +165,7 @@ export default function CoopDashboard() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (!token) return;
-      fetchRequests({ silent: true }).catch(() => {});
+      fetchRequests({ silent: true }).catch(() => { });
     }, 12000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -307,7 +308,7 @@ export default function CoopDashboard() {
   const contactedCount = requests.filter((r) => r.status === "CONTACTED").length;
   const closedCount = requests.filter((r) => r.status === "CLOSED").length;
 
-  const logoUrl = profile?.logo ? `${API_HOST}${profile.logo}` : null;
+  const logoUrl = imageUrl(profile?.logo);
 
   /* ---------------- UI ---------------- */
 
@@ -506,7 +507,7 @@ function ProfileTab({ profile, profileForm, setProfileForm, logoFile, setLogoFil
         <div className="mt-4 flex items-center gap-4">
           <div className="w-24 h-24 rounded-2xl bg-white border border-gray-200 overflow-hidden flex items-center justify-center">
             {profile?.logo ? (
-              <img src={`${API_HOST}${profile.logo}`} className="w-full h-full object-contain p-2" alt="logo" />
+              <img src={imageUrl(profile.logo)} className="w-full h-full object-contain p-2" alt="logo" />
             ) : (
               <div className="text-gray-400 font-black">LOGO</div>
             )}
@@ -544,7 +545,7 @@ function ProfileTab({ profile, profileForm, setProfileForm, logoFile, setLogoFil
 }
 
 function StandTab({ myStand, standForm, setStandForm, createStand, coverFile, setCoverFile, uploadCover }) {
-  const coverUrl = myStand?.cover_image ? `${API_HOST}${myStand.cover_image}` : null;
+  const coverUrl = imageUrl(myStand?.cover_image);
 
   return (
     <div className="mt-7 grid lg:grid-cols-2 gap-6">
@@ -636,7 +637,8 @@ function ProductsTab({ myStand, products, prodForm, setProdForm, productImageFil
           ) : (
             products.map((p) => {
               const imgPath = p.image || p.main_image;
-              const img = imgPath ? `${API_HOST}${imgPath}` : null;
+              const img = imageUrl(imgPath);
+
 
               return (
                 <div key={p.id} className="rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-md transition">
@@ -752,15 +754,15 @@ function RequestCard({ r, formatDate, updateRequestStatus, openDetails }) {
     status === "NEW"
       ? "border-red-200 bg-red-50"
       : status === "CONTACTED"
-      ? "border-amber-200 bg-amber-50"
-      : "border-emerald-200 bg-emerald-50";
+        ? "border-amber-200 bg-amber-50"
+        : "border-emerald-200 bg-emerald-50";
 
   const badgeStyle =
     status === "NEW"
       ? "bg-red-600 text-white"
       : status === "CONTACTED"
-      ? "bg-amber-500 text-white"
-      : "bg-emerald-600 text-white";
+        ? "bg-amber-500 text-white"
+        : "bg-emerald-600 text-white";
 
   return (
     <div className={`rounded-2xl border p-5 ${statusStyle} shadow-sm`}>
@@ -823,11 +825,10 @@ function TabBtn({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`px-5 py-2.5 rounded-xl font-black text-sm border transition ${
-        active
-          ? "bg-violet-600 text-white border-violet-600 shadow-sm"
-          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-      }`}
+      className={`px-5 py-2.5 rounded-xl font-black text-sm border transition ${active
+        ? "bg-violet-600 text-white border-violet-600 shadow-sm"
+        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+        }`}
     >
       {children}
     </button>
@@ -838,11 +839,10 @@ function FilterBtn({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-xl text-sm font-black border transition ${
-        active
-          ? "bg-gray-900 text-white border-gray-900 shadow-sm"
-          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-      }`}
+      className={`px-4 py-2 rounded-xl text-sm font-black border transition ${active
+        ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+        }`}
     >
       {children}
     </button>
