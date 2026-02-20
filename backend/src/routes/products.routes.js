@@ -2,6 +2,8 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import { uploadCloud } from "../middleware/uploadCloud.js";
 import pool from "../config/db.js";
+import { uploadMemory } from "../middleware/uploadMemory.js";
+
 
 import {
   createProduct,
@@ -18,7 +20,7 @@ router.get("/my", authMiddleware, getMyProducts);
 router.post("/", authMiddleware, createProduct);
 router.put("/:id", authMiddleware, updateProduct);
 router.delete("/:id", authMiddleware, deleteProduct);
-router.post("/:id/image", authMiddleware, uploadCloud.single("image"), uploadProductImage);
+router.post("/:id/image", authMiddleware, uploadMemory.single("image"), uploadProductImage);
 
 // ✅ PUBLIC products by stand
 router.get("/stand/:id", async (req, res) => {

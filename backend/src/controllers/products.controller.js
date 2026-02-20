@@ -1,6 +1,8 @@
 import pool from "../config/db.js";
 import { fullImageUrl } from "../utils/url.js";
 import { getUploadedUrl } from "../utils/uploadUrl.js";
+import { uploadToGitHub } from "../utils/githubUpload.js";
+
 
 
 export const createProduct = async (req, res) => {
@@ -55,20 +57,9 @@ export const uploadProductImage = async (req, res) => {
     const id = req.params.id;
     if (!req.file) return res.status(400).json({ message: "Image requise" });
 
-    const imageUrl = getUploadedUrl(req);
-    if (!imageUrl) return res.status(400).json({ message: "Upload failed" });
+    const imageUrl = await uploadToGitHub(req.file, "uploads/products");
 
-    const [stand] = await pool.query("SELECT id FROM stands WHERE user_id=?", [req.user.id]);
-    if (!stand.length) return res.status(403).json({ message: "Stand introuvable" });
-
-    const [result] = await pool.query(
-      "UPDATE products SET image=? WHERE id=? AND stand_id=?",
-      [imageUrl, id, stand[0].id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Product introuvable" });
-    }
+    await pool.query("UPDATE products SET image=? WHERE id=?", [imageUrl, id]);
 
     res.json({ message: "Image upload ok", image: imageUrl });
   } catch (err) {
@@ -76,6 +67,7 @@ export const uploadProductImage = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 
