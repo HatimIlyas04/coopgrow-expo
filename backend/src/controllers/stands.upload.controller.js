@@ -3,11 +3,17 @@ import { getUploadedUrl } from "../utils/uploadUrl.js";
 
 export const uploadStandCover = async (req, res) => {
   try {
-    const standId = req.params.id;
-    if (!req.file) return res.status(400).json({ message: "Image requise" });
+    const standId = req.params.standId || req.params.id;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Image requise" });
+    }
 
     const coverUrl = getUploadedUrl(req);
-    if (!coverUrl) return res.status(400).json({ message: "Upload failed" });
+
+    if (!coverUrl) {
+      return res.status(400).json({ message: "Upload failed" });
+    }
 
     const [result] = await pool.query(
       "UPDATE stands SET cover_image=? WHERE id=? AND user_id=?",
@@ -21,7 +27,9 @@ export const uploadStandCover = async (req, res) => {
     res.json({ message: "Cover upload ✅", cover_image: coverUrl });
   } catch (err) {
     console.error("UPLOAD COVER ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      message: err?.message || "Server error",
+    });
   }
 };
 
