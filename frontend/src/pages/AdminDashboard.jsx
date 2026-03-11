@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Spinner from "../components/spinner";
 
-if (loading) return <Spinner />;
 
 
 export default function AdminDashboard() {
@@ -15,11 +14,15 @@ export default function AdminDashboard() {
   const token = getToken();
   const user = getUser();
 
+
   const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
   const [tab, setTab] = useState("stats"); // stats | pendingUsers | pendingStands | users | stands | products
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
+  
+  if (loading) return <Spinner />;
+
 
   const handleAuthError = (err) => {
     const status = err?.response?.status;
