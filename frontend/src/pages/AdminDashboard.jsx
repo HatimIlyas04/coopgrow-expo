@@ -5,7 +5,6 @@ import { getUser, getToken, logout } from "../utils/auth";
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Spinner from "../components/spinner";
 
 
 
@@ -21,7 +20,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   
-  if (loading) return <Spinner />;
 
 
   const handleAuthError = (err) => {
@@ -95,14 +93,21 @@ export default function AdminDashboard() {
     setLoading(true);
     setMsg("");
     try {
-      await Promise.all([
-        fetchStats(),
-        fetchPendingUsers(),
-        fetchPendingStands(),
-        fetchAllUsers(),
-        fetchAllStands(),
-        fetchAllProducts(),
-      ]);
+      const results = await Promise.allSettled([
+  fetchStats(),
+  fetchPendingUsers(),
+  fetchPendingStands(),
+  fetchAllUsers(),
+  fetchAllStands(),
+  fetchAllProducts(),
+]);
+
+const failed = results.filter((r) => r.status === "rejected");
+
+if (failed.length > 0) {
+  console.error("Admin dashboard partial errors:", failed);
+  setMsg("بعض البيانات ما تحمّلاتش، ولكن الداشبورد خدام.");
+}
       toast.success("✅ Dashboard chargé avec succès !");
     } catch (err) {
       if (!handleAuthError(err)) {
