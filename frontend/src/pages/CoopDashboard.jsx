@@ -237,42 +237,65 @@ export default function CoopDashboard() {
 
   /* ---------------- Actions: Products ---------------- */
 
-  const addProduct = async (e) => {
-    e.preventDefault();
-    if (!myStand?.id) return toast("error", "⚠️ Créez un stand d’abord");
-    if (!prodForm.title.trim()) return toast("error", "⚠️ Titre obligatoire");
+const addProduct = async (e) => {
+  e.preventDefault();
 
-    try {
-      const { data } = await api.post(
-        "/products",
-        {
-          stand_id: myStand.id,
-          title: prodForm.title.trim(),
-          price: prodForm.price ? Number(prodForm.price) : null,
-          description: prodForm.description || null,
-        },
-        { headers }
-      );
+  if (!myStand?.id) return toast("error", "⚠️ Créez un stand d’abord");
+  if (!prodForm.title.trim()) return toast("error", "⚠️ Titre obligatoire");
 
-      const newId = data?.product_id || data?.id || data?.insertId;
+  try {
+    // 1) إنشاء المنتج
+    const { data } = await api.post(
+      "/products",
+      {
+        stand_id: myStand.id,
+        title: prodForm.title.trim(),
+        price: prodForm.price ? Number(prodForm.price) : null,
+        description: prodForm.description || null,
+      },
+      { headers }
+    );
 
-      if (productImageFile && newId) {
+    const newId = data?.product_id || data?.id || data?.insertId;
+
+    if (!newId) {
+      toast("error", "❌ Produit créé mais ID introuvable");
+      await fetchProducts();
+      return;
+    }
+
+    // 2) رفع الصورة اختياري
+    if (productImageFile) {
+      try {
         const fd = new FormData();
         fd.append("image", productImageFile);
 
         await api.post(`/products/${newId}/image`, fd, {
-          headers: { ...headers, "Content-Type": "multipart/form-data" },
+          headers: {
+            ...headers,
+            "Content-Type": "multipart/form-data",
+          },
         });
+      } catch (imgErr) {
+        console.error("UPLOAD IMAGE ERROR:", imgErr?.response?.data || imgErr.message);
+        toast(
+          "error",
+          imgErr?.response?.data?.message || "❌ Produit créé mais image non uploadée"
+        );
       }
-
-      setProdForm({ title: "", price: "", description: "" });
-      setProductImageFile(null);
-      await fetchProducts();
-      toast("success", "✅ Produit ajouté");
-    } catch (err) {
-      if (!handleAuthError(err)) toast("error", err?.response?.data?.message || "Erreur produit");
     }
-  };
+
+    setProdForm({ title: "", price: "", description: "" });
+    setProductImageFile(null);
+    await fetchProducts();
+    toast("success", "✅ Produit ajouté");
+  } catch (err) {
+    console.error("CREATE PRODUCT ERROR:", err?.response?.data || err.message);
+    if (!handleAuthError(err)) {
+      toast("error", err?.response?.data?.message || "Erreur création produit");
+    }
+  }
+};
 
   const deleteProduct = async (id) => {
     if (!confirm("Supprimer ce produit ?")) return;

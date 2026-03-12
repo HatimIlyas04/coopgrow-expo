@@ -8,25 +8,39 @@ import { uploadToGitHub } from "../utils/githubUpload.js";
 export const createProduct = async (req, res) => {
   try {
     const { stand_id, title, description, price } = req.body;
-    if (!stand_id) return res.status(400).json({ message: "stand_id obligatoire" });
-    if (!title) return res.status(400).json({ message: "title is required" });
+
+    if (!stand_id) {
+      return res.status(400).json({ message: "stand_id obligatoire" });
+    }
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ message: "title is required" });
+    }
 
     const [sRows] = await pool.query(
       "SELECT * FROM stands WHERE id=? AND user_id=?",
       [stand_id, req.user.id]
     );
-    if (!sRows.length) return res.status(403).json({ message: "Stand introuvable ou pas à vous" });
+
+    if (!sRows.length) {
+      return res.status(403).json({ message: "Stand introuvable ou pas à vous" });
+    }
 
     const [result] = await pool.query(
       `INSERT INTO products (stand_id, title, description, price, image)
        VALUES (?, ?, ?, ?, NULL)`,
-      [stand_id, title, description || null, price || null]
+      [stand_id, title.trim(), description || null, price || null]
     );
 
-    res.json({ message: "ok", product_id: result.insertId });
+    return res.status(201).json({
+      message: "Produit créé",
+      product_id: result.insertId,
+    });
   } catch (err) {
     console.error("CREATE PRODUCT ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({
+      message: err?.message || "Server error",
+    });
   }
 };
 
