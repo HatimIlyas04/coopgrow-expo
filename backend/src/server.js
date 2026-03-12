@@ -16,17 +16,28 @@ const app = express();
 /* CORS CONFIG */
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://coopgrow-expo.vercel.app",
-      "https://coopgrow-expo-g0wc3miti-hatimilyas04s-projects.vercel.app",
-    ],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "https://coopgrow-expo.vercel.app",
+      ];
+
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
-
 app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
